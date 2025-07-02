@@ -7,6 +7,7 @@
 """USB Helpers"""
 
 import sys
+from fnmatch import fnmatchcase
 from importlib import import_module
 from string import printable as printablechars
 from threading import RLock
@@ -64,7 +65,7 @@ class UsbTools:
     """Helpers to obtain information about connected USB devices."""
 
     # Supported back ends, in preference order
-    BACKENDS = ('usb.backend.libusb1', 'usb.backend.libusb0')
+    BACKENDS = ('pyftdi.d2xx', 'usb.backend.libusb1', 'usb.backend.libusb0')
 
     # Need to maintain a list of reference USB devices, to circumvent a
     # limitation in pyusb that prevents from opening several times the same
@@ -404,14 +405,14 @@ class UsbTools:
                 vps.add((vid, products[pid]))
         devices = cls.find_all(vps)
         if sernum:
-            if sernum not in [dev.sn for dev, _ in devices]:
-                raise UsbToolsError(f'No USB device with S/N {sernum}')
+            if not [dev for dev, _ in devices if dev.sn and fnmatchcase(dev.sn, sernum)]:
+                raise UsbToolsError("No USB device with S/N '%s'" % sernum)
         for desc, ifcount in devices:
             if vendor and vendor != desc.vid:
                 continue
             if product and product != desc.pid:
                 continue
-            if sernum and sernum != desc.sn:
+            if sernum and not fnmatchcase(desc.sn, sernum):
                 continue
             if bus is not None:
                 if bus != desc.bus or address != desc.address:
