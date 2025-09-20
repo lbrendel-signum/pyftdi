@@ -6,6 +6,11 @@
 
 # pylint: disable=missing-docstring
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from logging import Formatter, Logger
+
 __version__ = '0.56.0'
 __title__ = 'PyFtdi'
 __description__ = 'FTDI device driver (pure Python)'
@@ -23,20 +28,20 @@ from logging import WARNING, NullHandler, getLogger
 
 class FtdiLogger:
 
-    log = getLogger('pyftdi')
+    log: 'Logger' = getLogger('pyftdi')
     log.addHandler(NullHandler())
     log.setLevel(level=WARNING)
 
     @classmethod
-    def set_formatter(cls, formatter):
+    def set_formatter(cls, formatter: 'Formatter') -> None:
         handlers = list(cls.log.handlers)
         for handler in handlers:
             handler.setFormatter(formatter)
 
     @classmethod
-    def get_level(cls):
+    def get_level(cls) -> int:
         return cls.log.getEffectiveLevel()
 
     @classmethod
-    def set_level(cls, level):
+    def set_level(cls, level: int) -> None:
         cls.log.setLevel(level=level)
