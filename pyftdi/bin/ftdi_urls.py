@@ -11,14 +11,15 @@ from argparse import ArgumentParser, FileType
 from logging import Formatter, StreamHandler, DEBUG, ERROR
 from sys import exit as sys_exit, modules, stderr
 from traceback import format_exc
+from typing import NoReturn
 from pyftdi import FtdiLogger
 from pyftdi.ftdi import Ftdi
 from pyftdi.misc import add_custom_devices
 
 
-def main():
+def main() -> NoReturn:
     """Entry point."""
-    debug = False
+    debug: bool = False
     try:
         argparser = ArgumentParser(description=modules[__name__].__doc__)
         argparser.add_argument('-P', '--vidpid', action='append',
