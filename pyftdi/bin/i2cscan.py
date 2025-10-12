@@ -14,6 +14,7 @@ from argparse import ArgumentParser, FileType
 from logging import Formatter, StreamHandler, getLogger, DEBUG, ERROR
 from sys import exit as sys_exit, modules, stderr
 from traceback import format_exc
+from typing import List, NoReturn
 from pyftdi import FtdiLogger
 from pyftdi.ftdi import Ftdi
 from pyftdi.i2c import I2cController, I2cNackError
@@ -27,9 +28,9 @@ class I2cBusScanner:
        address.
     """
 
-    SMB_READ_RANGE = list(range(0x30, 0x38)) + list(range(0x50, 0x60))
+    SMB_READ_RANGE: List[int] = list(range(0x30, 0x38)) + list(range(0x50, 0x60))
 
-    HIGHEST_I2C_SLAVE_ADDRESS = 0x78
+    HIGHEST_I2C_SLAVE_ADDRESS: int = 0x78
 
     @classmethod
     def scan(cls, url: str, smb_mode: bool = True, force: bool = False) \
@@ -40,8 +41,8 @@ class I2cBusScanner:
            :param smb_mode: whether to use SMBbus restrictions or regular I2C
                             mode.
         """
-        i2c = I2cController()
-        slaves = []
+        i2c: I2cController = I2cController()
+        slaves: List[str] = []
         getLogger('pyftdi.i2c').setLevel(ERROR)
         try:
             i2c.set_retry_count(1)
@@ -73,8 +74,8 @@ class I2cBusScanner:
                         slaves.append('.')
         finally:
             i2c.terminate()
-        columns = 16
-        row = 0
+        columns: int = 16
+        row: int = 0
         print('  ', ''.join(f' {col:01X} ' for col in range(columns)))
         while True:
             chunk = slaves[row:row+columns]
@@ -84,9 +85,9 @@ class I2cBusScanner:
             row += columns
 
 
-def main():
+def main() -> NoReturn:
     """Entry point."""
-    debug = False
+    debug: bool = False
     try:
         argparser = ArgumentParser(description=modules[__name__].__doc__)
         argparser.add_argument('device', nargs='?', default='ftdi:///?',

@@ -13,6 +13,7 @@ from doctest import testmod
 from importlib import import_module
 from os.path import dirname, join as joinpath
 from sys import modules, path as syspath
+from typing import Any, Optional
 from unittest import TestCase, TestLoader, TestSuite, main as ut_main
 
 
@@ -26,42 +27,42 @@ class ToolsTestCase(TestCase):
     """
 
     @classmethod
-    def setUpClass(cls):
-        tools_path = joinpath(dirname(dirname(__file__)), 'bin')
+    def setUpClass(cls) -> None:
+        tools_path: str = joinpath(dirname(dirname(__file__)), 'bin')
         syspath.append(tools_path)
 
-    def test_ftconf(self):
+    def test_ftconf(self) -> None:
         """Test ftconf.py tool"""
         mod = import_module('ftconf')
         self.assertIsNot(getattr(mod, 'main', None), mod)
         self.assertIsNot(mod.__doc__, None)
 
-    def test_i2cscan(self):
+    def test_i2cscan(self) -> None:
         """Test ftconf.py tool"""
         mod = import_module('i2cscan')
         self.assertIsNot(getattr(mod, 'main', None), mod)
         self.assertIsNot(mod.__doc__, None)
 
-    def test_pyterm(self):
+    def test_pyterm(self) -> None:
         """Test ftconf.py tool"""
         mod = import_module('pyterm')
         self.assertIsNot(getattr(mod, 'main', None), mod)
         self.assertIsNot(mod.__doc__, None)
 
-    def test_ftdi_urls(self):
+    def test_ftdi_urls(self) -> None:
         """Test ftconf.py tool"""
         mod = import_module('ftdi_urls')
         self.assertIsNot(getattr(mod, 'main', None), mod)
         self.assertIsNot(mod.__doc__, None)
 
 
-def suite():
-    suite_ = TestSuite()
+def suite() -> TestSuite:
+    suite_: TestSuite = TestSuite()
     suite_.addTest(TestLoader().loadTestsFromModule(modules[__name__]))
     return suite_
 
 
-def main():
+def main() -> None:
     testmod(modules[__name__])
     ut_main(defaultTest='suite')
 

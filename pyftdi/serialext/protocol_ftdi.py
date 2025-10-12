@@ -12,6 +12,7 @@
 
 from io import RawIOBase
 from time import sleep, time as now
+from typing import List, Optional, Tuple, Union
 from serial import SerialBase, SerialException, VERSION as pyserialver
 from pyftdi.ftdi import Ftdi
 from pyftdi.usbtools import UsbToolsError
@@ -22,13 +23,13 @@ class FtdiSerial(SerialBase):
        using a USB device.
     """
 
-    BAUDRATES = sorted([9600 * (x+1) for x in range(6)] +
-                       list(range(115200, 1000000, 115200)) +
-                       list(range(1000000, 13000000, 100000)))
+    BAUDRATES: List[int] = sorted([9600 * (x+1) for x in range(6)] +
+                                  list(range(115200, 1000000, 115200)) +
+                                  list(range(1000000, 13000000, 100000)))
 
-    PYSERIAL_VERSION = tuple(int(x) for x in pyserialver.split('.'))
+    PYSERIAL_VERSION: Tuple[int, ...] = tuple(int(x) for x in pyserialver.split('.'))
 
-    def open(self):
+    def open(self) -> None:
         """Open the initialized serial port"""
         if self.port is None:
             raise SerialException("Port must be configured before use.")
@@ -41,14 +42,14 @@ class FtdiSerial(SerialBase):
         self._set_open_state(True)
         self._reconfigure_port()
 
-    def close(self):
+    def close(self) -> None:
         """Close the open port"""
         self._set_open_state(False)
         if self.udev:
             self.udev.close()
             self.udev = None
 
-    def read(self, size=1):
+    def read(self, size: int = 1) -> bytes:
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -69,38 +70,38 @@ class FtdiSerial(SerialBase):
             sleep(0.01)
         return bytes(data)
 
-    def write(self, data):
+    def write(self, data: Union[bytes, bytearray]) -> int:
         """Output the given string over the serial port."""
         return self.udev.write_data(data)
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush of file like objects. In this case, wait until all data
            is written."""
 
-    def reset_input_buffer(self):
+    def reset_input_buffer(self) -> None:
         """Clear input buffer, discarding all that is in the buffer."""
         self.udev.purge_rx_buffer()
 
-    def reset_output_buffer(self):
+    def reset_output_buffer(self) -> None:
         """Clear output buffer, aborting the current output and
         discarding all that is in the buffer."""
         self.udev.purge_tx_buffer()
 
-    def send_break(self, duration=0.25):
+    def send_break(self, duration: float = 0.25) -> None:
         """Send break condition."""
         self.udev.set_break(True)
         sleep(duration)
         self.udev.set_break(False)
 
-    def _update_break_state(self):
+    def _update_break_state(self) -> None:
         """Send break condition. Not supported"""
         self.udev.set_break(self._break_state)
 
-    def _update_rts_state(self):
+    def _update_rts_state(self) -> None:
         """Set terminal status line: Request To Send"""
         self.udev.set_rts(self._rts_state)
 
-    def _update_dtr_state(self):
+    def _update_dtr_state(self) -> None:
         """Set terminal status line: Data Terminal Ready"""
         self.udev.set_dtr(self._dtr_state)
 
@@ -113,7 +114,7 @@ class FtdiSerial(SerialBase):
         return self.udev
 
     @property
-    def usb_path(self):
+    def usb_path(self) -> Tuple[int, int, int]:
         """Return the physical location as a triplet.
              * bus is the USB bus
              * address is the address on the USB bus
@@ -125,42 +126,42 @@ class FtdiSerial(SerialBase):
         return self.udev.usb_path
 
     @property
-    def cts(self):
+    def cts(self) -> bool:
         """Read terminal status line: Clear To Send"""
         return self.udev.get_cts()
 
     @property
-    def dsr(self):
+    def dsr(self) -> bool:
         """Read terminal status line: Data Set Ready"""
         return self.udev.get_dsr()
 
     @property
-    def ri(self):
+    def ri(self) -> bool:
         """Read terminal status line: Ring Indicator"""
         return self.udev.get_ri()
 
     @property
-    def cd(self):
+    def cd(self) -> bool:
         """Read terminal status line: Carrier Detect"""
         return self.udev.get_cd()
 
     @property
-    def in_waiting(self):
+    def in_waiting(self) -> int:
         """Return the number of characters currently in the input buffer."""
         # not implemented
         return 0
 
     @property
-    def out_waiting(self):
+    def out_waiting(self) -> int:
         """Return the number of bytes currently in the output buffer."""
         return 0
 
     @property
-    def fifoSizes(self):
+    def fifoSizes(self) -> Tuple[int, int]:
         """Return the (TX, RX) tupple of hardware FIFO sizes"""
         return self.udev.fifo_sizes
 
-    def _reconfigure_port(self):
+    def _reconfigure_port(self) -> None:
         try:
             self._baudrate = self.udev.set_baudrate(self._baudrate, True)
             self.udev.set_line_property(self._bytesize,
@@ -181,7 +182,7 @@ class FtdiSerial(SerialBase):
             err = self.udev.get_error_string()
             raise SerialException(f'{exc} ({err})') from exc
 
-    def _set_open_state(self, open_):
+    def _set_open_state(self, open_: bool) -> None:
         self.is_open = bool(open_)
 
 
@@ -189,8 +190,8 @@ class FtdiSerial(SerialBase):
 # for file-like behavior.
 class Serial(FtdiSerial, RawIOBase):
 
-    BACKEND = 'pyftdi'
+    BACKEND: str = 'pyftdi'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, **kwargs) -> None:
         RawIOBase.__init__(self)
         FtdiSerial.__init__(self, *args, **kwargs)

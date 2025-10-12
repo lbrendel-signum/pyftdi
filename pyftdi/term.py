@@ -8,6 +8,7 @@
 
 from os import environ, read as os_read
 from sys import platform, stderr, stdin, stdout
+from typing import Dict, List, Optional, Tuple
 
 # pylint: disable=import-error
 if platform == 'win32':
@@ -18,7 +19,7 @@ else:
                          VTIME, tcgetattr, tcsetattr)
 
     # pylint workaround (disable=used-before-assignment)
-    def call():
+    def call() -> None:
         # pylint: disable=missing-function-docstring
         pass
 
@@ -27,7 +28,7 @@ class Terminal:
     """Terminal management function
     """
 
-    FNKEYS = {
+    FNKEYS: Dict[int, bytes] = {
         # Ctrl + Alt + Backspace
         14:     b'\x1b^H',
         # Ctrl + Alt + Enter
@@ -135,11 +136,11 @@ class Terminal:
             0x1b == Escape key
     """
 
-    IS_MSWIN = platform == 'win32'
+    IS_MSWIN: bool = platform == 'win32'
     """Whether we run on crap OS."""
 
-    def __init__(self):
-        self._termstates = []
+    def __init__(self) -> None:
+        self._termstates: List[Tuple[int, Optional[List]]] = []
 
     def init(self, fullterm: bool) -> None:
         """Internal terminal initialization function"""
@@ -176,8 +177,8 @@ class Terminal:
         terminal (vs. a regular file or pipe)"""
         return stdout.isatty()
 
-    @staticmethod
-    def is_colorterm() -> bool:
+    @classmethod
+    def is_colorterm(cls) -> bool:
         """Tells whether the current terminal (if any) support colors escape
         sequences"""
         terms = ['xterm-color', 'ansi']

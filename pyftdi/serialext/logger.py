@@ -13,6 +13,7 @@
 
 from sys import stderr
 from time import time
+from typing import Any, Optional, TextIO, Union
 from ..misc import hexdump
 
 
@@ -23,96 +24,96 @@ class SerialLogger:
     """Serial port wrapper to log input/output data to a log file.
     """
 
-    def __init__(self, *args, **kwargs):
-        logpath = kwargs.pop('logfile', None)
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        logpath: Optional[str] = kwargs.pop('logfile', None)
         if not logpath:
             raise ValueError('Missing logfile')
         try:
             # pylint: disable=consider-using-with
-            self._logger = open(logpath, "wt")
+            self._logger: TextIO = open(logpath, "wt")
         except IOError as exc:
             print(f'Cannot log data to {logpath}: {exc}', file=stderr)
-        self._last = time()
+        self._last: float = time()
         self._log_init(*args, **kwargs)
         super(SerialLogger, self).__init__(*args, **kwargs)
 
-    def open(self,):
+    def open(self) -> None:
         self._log_open()
         super(SerialLogger, self).open()
 
-    def close(self):
+    def close(self) -> None:
         self._log_close()
         self._logger.close()
         super(SerialLogger, self).close()
 
-    def read(self, size=1):
+    def read(self, size: int = 1) -> bytes:
         data = super(SerialLogger, self).read(size)
         self._log_read(data)
         return data
 
-    def write(self, data):
+    def write(self, data: Union[bytes, bytearray]) -> Optional[int]:
         if data:
             self._log_write(data)
-        super(SerialLogger, self).write(data)
+        return super(SerialLogger, self).write(data)
 
-    def flush(self):
+    def flush(self) -> None:
         self._log_flush()
         super(SerialLogger, self).flush()
 
-    def reset_input_buffer(self):
+    def reset_input_buffer(self) -> None:
         self._log_reset('I')
         super(SerialLogger, self).reset_input_buffer()
 
-    def reset_output_buffer(self):
+    def reset_output_buffer(self) -> None:
         self._log_reset('O')
         super(SerialLogger, self).reset_output_buffer()
 
-    def send_break(self, duration=0.25):
+    def send_break(self, duration: float = 0.25) -> None:
         self._log_signal('BREAK', f'for {duration:.3f}')
         super(SerialLogger, self).send_break()
 
-    def _update_break_state(self):
+    def _update_break_state(self) -> None:
         self._log_signal('BREAK', self._break_state)
         super(SerialLogger, self)._update_break_state()
 
-    def _update_rts_state(self):
+    def _update_rts_state(self) -> None:
         self._log_signal('RTS', self._rts_state)
         super(SerialLogger, self)._update_rts_state()
 
-    def _update_dtr_state(self):
+    def _update_dtr_state(self) -> None:
         self._log_signal('DTR', self._dtr_state)
         super(SerialLogger, self)._update_dtr_state()
 
     @property
-    def cts(self):
+    def cts(self) -> bool:
         level = super(SerialLogger, self).cts
         self._log_signal('CTS', level)
         return level
 
     @property
-    def dsr(self):
+    def dsr(self) -> bool:
         level = super(SerialLogger, self).dsr
         self._log_signal('DSR', level)
         return level
 
     @property
-    def ri(self):
+    def ri(self) -> bool:
         level = super(SerialLogger, self).ri
         self._log_signal('RI', level)
         return level
 
     @property
-    def cd(self):
+    def cd(self) -> bool:
         level = super(SerialLogger, self).cd
         self._log_signal('CD', level)
         return level
 
-    def in_waiting(self):
+    def in_waiting(self) -> int:
         count = super(SerialLogger, self).in_waiting()
         self._log_waiting(count)
         return count
 
-    def _print(self, header, string=None):
+    def _print(self, header: str, string: Optional[str] = None) -> None:
         if self._logger:
             now = time()
             delta = (now-self._last)*1000
@@ -121,7 +122,7 @@ class SerialLogger:
                   file=self._logger)
             self._logger.flush()
 
-    def _log_init(self, *args, **kwargs):
+    def _log_init(self, *args: Any, **kwargs: Any) -> None:
         try:
             sargs = ', '.join(args)
             skwargs = ', '.join({f'{it[0]}={it[1]}' for it in kwargs.items()})
@@ -129,49 +130,49 @@ class SerialLogger:
         except Exception as exc:
             print(f'Cannot log init ({exc})', file=stderr)
 
-    def _log_open(self):
+    def _log_open(self) -> None:
         try:
             self._print('OPEN')
         except Exception as exc:
             print(f'Cannot log open ({exc})', file=stderr)
 
-    def _log_close(self):
+    def _log_close(self) -> None:
         try:
             self._print('CLOSE')
         except Exception as exc:
             print(f'Cannot log close ({exc})', file=stderr)
 
-    def _log_read(self, data):
+    def _log_read(self, data: Union[bytes, bytearray]) -> None:
         try:
             self._print('READ', hexdump(data))
         except Exception as exc:
             print(f'Cannot log input data ({exc})', file=stderr)
 
-    def _log_write(self, data):
+    def _log_write(self, data: Union[bytes, bytearray]) -> None:
         try:
             self._print('WRITE', hexdump(data))
         except Exception as exc:
             print(f'Cannot log output data ({exc})', data, file=stderr)
 
-    def _log_flush(self):
+    def _log_flush(self) -> None:
         try:
             self._print('FLUSH')
         except Exception as exc:
             print(f'Cannot log flush action ({exc})', file=stderr)
 
-    def _log_reset(self, type_):
+    def _log_reset(self, type_: str) -> None:
         try:
             self._print('RESET BUFFER', type_)
         except Exception as exc:
             print(f'Cannot log reset buffer ({exc})', file=stderr)
 
-    def _log_waiting(self, count):
+    def _log_waiting(self, count: int) -> None:
         try:
             self._print('INWAITING', f'{count}')
         except Exception as exc:
             print(f'Cannot log inwaiting ({exc})', file=stderr)
 
-    def _log_signal(self, name, value):
+    def _log_signal(self, name: str, value: Any) -> None:
         try:
             self._print(name.upper(), str(value))
         except Exception as exc:

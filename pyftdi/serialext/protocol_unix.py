@@ -18,6 +18,7 @@ import os
 import select
 import socket
 from io import RawIOBase
+from typing import Optional, Union
 from serial import (SerialBase, SerialException, PortNotOpenError,
                     VERSION as pyserialver)
 from ..misc import hexdump
@@ -29,7 +30,7 @@ __all__ = ['Serial']
 class SerialExceptionWithErrno(SerialException):
     """Serial exception with errno extension"""
 
-    def __init__(self, message, errno=None):
+    def __init__(self, message: str, errno: Optional[int] = None) -> None:
         SerialException.__init__(self, message)
         self.errno = errno
 
@@ -40,15 +41,15 @@ class SocketSerial(SerialBase):
        This is basically a copy of the serialposix serial port implementation
        with redefined IO for a Unix socket"""
 
-    BACKEND = 'socket'
-    VIRTUAL_DEVICE = True
+    BACKEND: str = 'socket'
+    VIRTUAL_DEVICE: bool = True
 
-    PYSERIAL_VERSION = tuple(int(x) for x in pyserialver.split('.'))
+    PYSERIAL_VERSION: tuple = tuple(int(x) for x in pyserialver.split('.'))
 
-    def _reconfigure_port(self):
+    def _reconfigure_port(self) -> None:
         pass
 
-    def open(self):
+    def open(self) -> None:
         """Open the initialized serial port"""
         if self._port is None:
             raise SerialException("Port must be configured before use.")
@@ -75,7 +76,7 @@ class SocketSerial(SerialBase):
         self._set_open_state(True)
         self._lastdtr = None
 
-    def close(self):
+    def close(self) -> None:
         if self.sock:
             try:
                 self.sock.shutdown(socket.SHUT_RDWR)
@@ -88,11 +89,11 @@ class SocketSerial(SerialBase):
             self.sock = None
         self._set_open_state(False)
 
-    def in_waiting(self):
+    def in_waiting(self) -> int:
         """Return the number of characters currently in the input buffer."""
         return 0
 
-    def read(self, size=1):
+    def read(self, size: int = 1) -> Union[bytes, bytearray]:
         """Read size bytes from the serial port. If a timeout is set it may
            return less characters as requested. With no timeout it will block
            until the requested number of bytes is read."""
@@ -114,7 +115,7 @@ class SocketSerial(SerialBase):
                     break  # early abort on timeout
         return read
 
-    def write(self, data):
+    def write(self, data: Union[bytes, bytearray]) -> Optional[int]:
         """Output the given string over the serial port."""
         if self.sock is None:
             raise PortNotOpenError
@@ -141,66 +142,66 @@ class SocketSerial(SerialBase):
                 if e.errno != errno.EAGAIN:
                     raise
 
-    def flush(self):
+    def flush(self) -> None:
         """Flush of file like objects. In this case, wait until all data
            is written."""
 
-    def reset_input_buffer(self):
+    def reset_input_buffer(self) -> None:
         """Clear input buffer, discarding all that is in the buffer."""
 
-    def reset_output_buffer(self):
+    def reset_output_buffer(self) -> None:
         """Clear output buffer, aborting the current output and
         discarding all that is in the buffer."""
 
-    def send_break(self, duration=0.25):
+    def send_break(self, duration: float = 0.25) -> None:
         """Send break condition. Not supported"""
 
-    def _update_break_state(self):
+    def _update_break_state(self) -> None:
         """Send break condition. Not supported"""
 
-    def _update_rts_state(self):
+    def _update_rts_state(self) -> None:
         """Set terminal status line: Request To Send"""
 
-    def _update_dtr_state(self):
+    def _update_dtr_state(self) -> None:
         """Set terminal status line: Data Terminal Ready"""
 
-    def setDTR(self, value=1):
+    def setDTR(self, value: int = 1) -> None:
         """Set terminal status line: Data Terminal Ready"""
 
     @property
-    def cts(self):
+    def cts(self) -> bool:
         """Read terminal status line: Clear To Send"""
         return True
 
     @property
-    def dsr(self):
+    def dsr(self) -> bool:
         """Read terminal status line: Data Set Ready"""
         return True
 
     @property
-    def ri(self):
+    def ri(self) -> bool:
         """Read terminal status line: Ring Indicator"""
         return False
 
     @property
-    def cd(self):
+    def cd(self) -> bool:
         """Read terminal status line: Carrier Detect"""
         return False
 
     # - - platform specific - - - -
 
-    def nonblocking(self):
+    def nonblocking(self) -> None:
         """internal - not portable!"""
         if self.sock is None:
             raise PortNotOpenError
         self.sock.setblocking(0)
 
-    def dump(self, enable):
+    def dump(self, enable: bool) -> None:
         self._dump = enable
 
     # - - Helpers - -
 
-    def _set_open_state(self, open_):
+    def _set_open_state(self, open_: bool) -> None:
         if self.PYSERIAL_VERSION < (3, 0):
             self._isOpen = bool(open_)
         else:

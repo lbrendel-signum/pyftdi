@@ -7,13 +7,15 @@
 """Serial modules compliant with pyserial APIs
 """
 
+from typing import Tuple
+
 try:
     from serial.serialutil import SerialException
 except ImportError as exc:
     raise ImportError("Python serial module not installed") from exc
 try:
     from serial import VERSION, serial_for_url as serial4url
-    version = tuple(int(x) for x in VERSION.split('.'))
+    version: Tuple[int, ...] = tuple(int(x) for x in VERSION.split('.'))
     if version < (3, 0):
         raise ValueError
 except (ValueError, IndexError, ImportError) as exc:
@@ -27,7 +29,7 @@ except ImportError as exc:
 serial_for_url = serial4url
 
 
-def touch():
+def touch() -> None:
     """Do nothing, only for static checkers than do not like module import
        with no module references
     """

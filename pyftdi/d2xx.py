@@ -24,6 +24,7 @@ from ctypes import (
     cast,
     create_string_buffer,
 )
+from typing import Any, Callable, Dict, List, Optional, Tuple, Type, Union
 import usb.backend
 import usb.core
 import usb.util
